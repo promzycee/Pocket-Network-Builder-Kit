@@ -1,8 +1,6 @@
 # Use case: Relay Quote
 
-**Proposal title:** Relay Quote, a reusable Pocket service starter
-
-**Proposed service ID:** `relay-quote`
+**Service ID:** `relay-quote`
 
 **Display name:** Relay Quote
 
@@ -32,10 +30,6 @@ The owner-share figure uses the configured rate `0.025` and is labeled `configur
 
 The container in this repository listens on port 8080 inside a private network. The HA RelayMiner `rest` backend is the only public path. Templates for Beta and MainNet are separate directories and pin image `ghcr.io/pokt-network/pocket-relay-miner:v0.1.6`, which was the latest release on 2026-11-21. Operators confirm the release before they deploy.
 
-## What this proposal does not include
+## What this service does not include
 
 No customer accounts, no API keys, and no embedded supplier keys. The backend does not sign relays, stake, or submit claims. Those stay with `pocketd` and the HA RelayMiner.
-
-## Ask
-
-Preapprove this use case for the builder task: a public starter repository, setup docs, a clean-environment test, and a functional local example, with on-chain registration and supplier deployment left as operator steps that must be evidenced separately.

@@ -2,7 +2,7 @@
 
 Reusable starter for publishing a JSON service on Pocket Network. The reference service is **Relay Quote** (`relay-quote`): it turns the public compute-unit formula into a quote a supplier can serve behind the HA RelayMiner.
 
-This repository is the starter, the setup docs, the clean-environment test, and the functional example. It does not claim an ambassador approval, an on-chain registration, or a settled relay. Those steps stay outside the code until you run them and keep the output.
+This repository is the starter, the setup docs, the clean-environment test, and the functional example. On-chain registration and a settled relay stay outside the code until you run them and keep the output.
 
 Official references:
 
@@ -71,9 +71,8 @@ A call to `127.0.0.1` is a backend demo. It is not a Pocket relay.
 | `validate_and_test.py` | Clean-environment test |
 | `card.json` | `pocket-service-card/v1` metadata |
 | `openapi/v1/openapi.json` | API document, version 1.0.0 |
-| `docs/use-case.md` | Use case to send for preapproval |
+| `docs/use-case.md` | What Relay Quote does |
 | `docs/setup.md` | Setup and local demo |
-| `docs/preapproval.md` | How to ask for preapproval |
 | `docs/register.md` | Beta registration commands |
 | `docs/operators.md` | Supplier runbook |
 | `docs/deploy.md` | HA RelayMiner layout |

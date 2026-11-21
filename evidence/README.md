@@ -1,6 +1,6 @@
 # Evidence
 
-Store observed output here. Do not invent hashes, addresses, or approvals.
+Store observed output here. Do not invent hashes or addresses.
 
 Safe to commit after you redact it:
 
