@@ -1,0 +1,214 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Relay Quote",
+    "version": "1.0.0",
+    "description": "Deterministic Pocket relay cost quotes, plus a live read of public MainNet and Beta pricing parameters. Every response is a JSON object."
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "root",
+        "responses": {
+          "200": {
+            "description": "Process is answering.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Root"}
+              }
+            }
+          }
+        }
+      },
+      "head": {
+        "operationId": "rootHead",
+        "responses": {"200": {"description": "Headers only."}}
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "operationId": "version",
+        "responses": {
+          "200": {
+            "description": "Service identity.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Version"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "Readiness.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Health"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/estimate": {
+      "post": {
+        "operationId": "estimate",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/EstimateRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Floor-division quote. Identical inputs return identical bytes.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/Quote"}
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/Error"},
+          "422": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    },
+    "/v1/network-status": {
+      "post": {
+        "operationId": "networkStatus",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {"$ref": "#/components/schemas/NetworkRequest"}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Live public parameters. Bytes can change between calls.",
+            "content": {
+              "application/json": {
+                "schema": {"$ref": "#/components/schemas/NetworkStatus"}
+              }
+            }
+          },
+          "400": {"$ref": "#/components/responses/Error"},
+          "422": {"$ref": "#/components/responses/Error"},
+          "502": {"$ref": "#/components/responses/Error"},
+          "504": {"$ref": "#/components/responses/Error"}
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Root": {
+        "type": "object",
+        "required": ["service", "status"],
+        "properties": {
+          "service": {"type": "string", "enum": ["relay-quote"]},
+          "status": {"type": "string", "enum": ["ok"]}
+        }
+      },
+      "Version": {
+        "type": "object",
+        "required": ["service", "version"],
+        "properties": {
+          "service": {"type": "string", "enum": ["relay-quote"]},
+          "version": {"type": "string", "enum": ["1.0.0"]}
+        }
+      },
+      "Health": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {"status": {"type": "string", "enum": ["ok"]}}
+      },
+      "EstimateRequest": {
+        "type": "object",
+        "required": [
+          "compute_units_per_relay",
+          "compute_units_to_tokens_multiplier",
+          "compute_unit_cost_granularity"
+        ],
+        "properties": {
+          "compute_units_per_relay": {"type": "integer", "minimum": 1, "maximum": 1048576},
+          "compute_units_to_tokens_multiplier": {"type": "integer", "minimum": 1},
+          "compute_unit_cost_granularity": {"type": "integer", "minimum": 1},
+          "relay_count": {"type": "integer", "minimum": 1, "maximum": 1000000, "default": 1}
+        }
+      },
+      "Quote": {
+        "type": "object",
+        "required": ["service", "cost_upokt", "cost_pokt", "royalty_source", "division"],
+        "properties": {
+          "service": {"type": "string"},
+          "compute_units_per_relay": {"type": "integer"},
+          "relay_count": {"type": "integer"},
+          "compute_units_to_tokens_multiplier": {"type": "integer"},
+          "compute_unit_cost_granularity": {"type": "integer"},
+          "cost_upokt": {"type": "string"},
+          "cost_pokt": {"type": "string"},
+          "owner_share_upokt": {"type": "string"},
+          "owner_share_pokt": {"type": "string"},
+          "royalty_rate": {"type": "string"},
+          "royalty_source": {
+            "type": "string",
+            "enum": ["configured_estimate_not_live_chain_state"]
+          },
+          "division": {"type": "string", "enum": ["floor"]}
+        }
+      },
+      "NetworkRequest": {
+        "type": "object",
+        "required": ["network"],
+        "properties": {
+          "network": {"type": "string", "enum": ["main", "beta"]},
+          "compute_units_per_relay": {"type": "integer", "minimum": 1, "maximum": 1048576}
+        }
+      },
+      "NetworkStatus": {
+        "type": "object",
+        "required": ["service", "network", "chain_id", "parameter_source"],
+        "properties": {
+          "service": {"type": "string"},
+          "network": {"type": "string"},
+          "chain_id": {"type": "string"},
+          "compute_units_to_tokens_multiplier": {"type": "integer"},
+          "compute_unit_cost_granularity": {"type": "integer"},
+          "num_blocks_per_session": {"type": "integer"},
+          "add_service_fee_upokt": {"type": "string"},
+          "add_service_fee_denom": {"type": "string"},
+          "parameter_source": {"type": "string", "enum": ["live_public_rest"]},
+          "quote": {"$ref": "#/components/schemas/Quote"}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {"type": "string"},
+          "message": {"type": "string"},
+          "network": {"type": "string"}
+        }
+      }
+    },
+    "responses": {
+      "Error": {
+        "description": "JSON error object.",
+        "content": {
+          "application/json": {
+            "schema": {"$ref": "#/components/schemas/Error"}
+          }
+        }
+      }
+    }
+  }
+}

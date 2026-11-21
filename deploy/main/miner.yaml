@@ -1,0 +1,23 @@
+# HA RelayMiner miner for MainNet. Chain id pocket. Block time about 60 seconds.
+
+redis:
+  url: "redis://redis:6379"
+
+pocket_node:
+  query_node_rpc_url: "https://sauron-rpc.infra.pocket.network"
+  query_node_grpc_url: "sauron-grpc.infra.pocket.network:443"
+  chain_id: "pocket"
+  grpc_insecure: false
+
+keys:
+  keys_file: "/keys/supplier-keys.local.yaml"
+
+block_time_seconds: 60
+
+metrics:
+  enabled: true
+  addr: "127.0.0.1:9092"
+
+logging:
+  level: "info"
+  format: "json"

@@ -1,0 +1,81 @@
+# Beta supplier stack: private backend, Redis, HA RelayMiner miner and relayer.
+# RelayMiner image: ghcr.io/pokt-network/pocket-relay-miner:v0.1.6
+# Check https://github.com/pokt-network/pocket-relay-miner/releases before use.
+#
+# Create supplier-keys.local.yaml beside this file, mode 0600, and do not
+# commit it. The stack will not start until that file exists.
+#
+#   docker compose -p relay-quote-beta up -d
+#   docker compose -p relay-quote-beta down -v
+#
+# The relayer is published only on loopback port 8180. Put a TLS proxy in
+# front of it and publish https://<hostname>. Do not publish backend, Redis,
+# health, or metrics ports.
+
+services:
+  backend:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8080"
+      SERVICE_ID: relay-quote
+      SERVICE_VERSION: "1.0.0"
+    expose:
+      - "8080"
+    mem_limit: 256m
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.10.1-alpine
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis-data:/data
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  miner:
+    image: ghcr.io/pokt-network/pocket-relay-miner:v0.1.6
+    command: ["miner", "--config", "/config/miner.yaml"]
+    volumes:
+      - ./miner.yaml:/config/miner.yaml:ro
+      - ./supplier-keys.local.yaml:/keys/supplier-keys.local.yaml:ro
+    environment:
+      GOMEMLIMIT: 3600MiB
+      GOMAXPROCS: "2"
+    mem_limit: 4g
+    cpus: 2
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: on-failure
+
+  relayer:
+    image: ghcr.io/pokt-network/pocket-relay-miner:v0.1.6
+    command: ["relayer", "--config", "/config/relayer.yaml"]
+    volumes:
+      - ./relayer.yaml:/config/relayer.yaml:ro
+      - ./supplier-keys.local.yaml:/keys/supplier-keys.local.yaml:ro
+    ports:
+      - "127.0.0.1:8180:8080"
+    environment:
+      GOMEMLIMIT: 1800MiB
+      GOMAXPROCS: "2"
+    mem_limit: 2g
+    cpus: 2
+    depends_on:
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  redis-data:

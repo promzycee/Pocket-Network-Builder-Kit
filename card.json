@@ -1,0 +1,60 @@
+{
+  "schema": "pocket-service-card/v1",
+  "description": "Quotes the POKT cost of one Pocket relay. POST /v1/estimate with compute_units_per_relay, compute_units_to_tokens_multiplier, compute_unit_cost_granularity, and optional relay_count returns a deterministic floor-division quote. POST /v1/network-status with network set to main or beta reads live public REST parameters and can attach a one-relay quote. Identical estimate inputs return identical bytes. Network status changes when chain parameters change, so the service is variable. Every response is a JSON object. The owner share uses ROYALTY_RATE and is a configured estimate, not live chain state.",
+  "rpc_types": [
+    {
+      "type": "REST",
+      "intent": "expected",
+      "backend_hint": "relay-quote container on port 8080, private behind the HA RelayMiner rest backend",
+      "notes": "GET /, HEAD /, GET /v1/version, GET /v1/health, POST /v1/estimate, and POST /v1/network-status. Responses use identity encoding and start with {. Inputs are JSON bodies. Do not set sync_check."
+    }
+  ],
+  "apis": ["relay-quote-api"],
+  "specs": [
+    {
+      "kind": "openapi",
+      "api": "relay-quote-api",
+      "url": "https://raw.githubusercontent.com/promzycee/Pocket-Network-Builder-Kit/main/openapi/v1/openapi.json",
+      "notes": "Moving branch URL. Add sha256 only after a tag freezes this file."
+    }
+  ],
+  "access": "public",
+  "results": "variable",
+  "serving": {
+    "backend": "Run the relay-quote image on a private Docker network. Point the HA RelayMiner rest backend at http://backend:8080. No caller credential is required. Do not publish port 8080 on the public internet.",
+    "implementations": ["relay-quote >= 1.0.0"],
+    "docs": "https://github.com/promzycee/Pocket-Network-Builder-Kit/blob/main/docs/operators.md",
+    "min_disk_gb": 1,
+    "min_ram_gb": 1,
+    "healthcheck": [
+      {
+        "rpc_type": "REST",
+        "request": {"path": "/v1/version", "method": "GET"},
+        "expect": {"json_path": "$.service", "matches": "^relay-quote$"},
+        "notes": "Identity probe."
+      },
+      {
+        "rpc_type": "REST",
+        "request": {"path": "/v1/health", "method": "GET"},
+        "expect": {"json_path": "$.status", "matches": "^ok$"}
+      },
+      {
+        "rpc_type": "REST",
+        "request": {
+          "path": "/v1/estimate",
+          "method": "POST",
+          "body": {
+            "compute_units_per_relay": 1000,
+            "compute_units_to_tokens_multiplier": 2,
+            "compute_unit_cost_granularity": 1,
+            "relay_count": 1
+          }
+        },
+        "expect": {"json_path": "$.cost_upokt", "matches": "^2000$"}
+      }
+    ],
+    "notes": "Backend limit is 1 MiB. Gateway: type passthrough, rpc_types rest, relay budget 30s. Health checks must match this card. Royalty is not a live parameter."
+  },
+  "docs": "https://github.com/promzycee/Pocket-Network-Builder-Kit/blob/main/docs/setup.md",
+  "updated": "2026-11-21"
+}

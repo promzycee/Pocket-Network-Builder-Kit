@@ -1,0 +1,12 @@
+.env
+*.pem
+*.key
+*.p12
+supplier-keys.yaml
+supplier-keys.local.yaml
+keyring-test/
+.pocket/
+__pycache__/
+*.pyc
+.venv/
+venv/

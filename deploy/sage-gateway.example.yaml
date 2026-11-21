@@ -1,0 +1,29 @@
+# SAGE snippet for relay-quote. Keep these paths aligned with card.json.
+# This service is not a blockchain, so leave block-height sync settings unset.
+
+gateway_config:
+  services:
+    - id: relay-quote
+      type: passthrough
+      rpc_types: ["rest"]
+      timeout_config:
+        relay_timeout: 30s
+      active_health_checks:
+        local:
+          - service_id: relay-quote
+            enabled: true
+            checks:
+              - name: version
+                type: rest
+                method: GET
+                path: /v1/version
+                expected_status_code: 200
+                reputation_signal: critical_error
+                timeout: 5s
+              - name: health
+                type: rest
+                method: GET
+                path: /v1/health
+                expected_status_code: 200
+                reputation_signal: major_error
+                timeout: 5s

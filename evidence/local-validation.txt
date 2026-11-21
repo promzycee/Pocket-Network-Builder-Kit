@@ -1,0 +1,6 @@
+3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]
+local validation passed
+live main: multiplier=166742 granularity=1000000 fee_upokt=1000000000 quote_upokt=166
+live beta: multiplier=40000 granularity=1000000 fee_upokt=1000000000 quote_upokt=40
+live parameter reads passed
+validation passed
